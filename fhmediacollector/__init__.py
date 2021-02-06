@@ -26,12 +26,12 @@ CLI_INTRO_TEXT = "\n".join([
     CLI_ART,
     "\tAuthor: \tOddPawsX",
     "\tDiscord: \tOddPawsX#6969",
-    "\tVersion: \tv1.0.0",
+    "\tVersion: \tv1.0.1",
     "\n",
     "=" * 50
 ])
 
-USER_AGENT = "fhmediacollector/1.0.0"
+USER_AGENT = "fhmediacollector/1.0.1"
 
 DEFAULT_ENV_FILE_CONTENT = """# DEFAULT fhcollector env file
 E621_USERNAME=
@@ -274,7 +274,7 @@ def cli():
     parser.set_defaults(exclude_safe=False,
                         exclude_questionable=False,
                         exclude_explicit=False) # include all by default
-    parser.add_argument('--version', action='version', version='%(prog)s 1.0.0')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0.1')
     args = parser.parse_args()
 
     ratings = ["s", "q", "e"]
@@ -340,9 +340,17 @@ def cli():
          ("*"*(len(os.environ["E621_API_KEY"])-3))))
     print("-" * 50)
 
-    if args.avoid:
-        with open(args.avoid, "r") as f:
-            avoid_list.extend(f.read().splitlines())
+    try:
+        if args.avoid:
+            with open(args.avoid, "r") as f:
+                avoid_list.extend(f.read().splitlines())
+        for item in avoid_list:
+            if len(item) == 0:
+                raise ValueError("Please remove blank line from "
+                                 "{}: {}".format(args.avoid, avoid_list))
+    except Exception as e:
+        print("ERROR: {}".format(e))
+        sys.exit(1)
 
     print("Tags to avoid: {}".format(avoid_list))
     print("-" * 50)

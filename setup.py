@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='fhmediacollector',
-      version='1.0.0',
+      version='1.0.1',
       description='e621 media collection and organization for video creation',
       long_description=readme(),
       long_description_content_type="text/markdown",
