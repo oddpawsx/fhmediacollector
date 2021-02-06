@@ -29,7 +29,7 @@ $ fhcollector -h
 
         Author:         OddPawsX
         Discord:        OddPawsX#6969
-        Version:        v1.0.0
+        Version:        v1.0.2
 
 
 ==================================================
