@@ -1,0 +1,3 @@
+#!/usr/bin/env python
+import fhmediacollector
+fhmediacollector.cli()
