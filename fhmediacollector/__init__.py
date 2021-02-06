@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import requests
+from requests.auth import HTTPBasicAuth
 import sys
 from time import sleep
 import uuid
@@ -26,12 +27,12 @@ CLI_INTRO_TEXT = "\n".join([
     CLI_ART,
     "\tAuthor: \tOddPawsX",
     "\tDiscord: \tOddPawsX#6969",
-    "\tVersion: \tv1.0.1",
+    "\tVersion: \tv1.0.2",
     "\n",
     "=" * 50
 ])
 
-USER_AGENT = "fhmediacollector/1.0.1"
+USER_AGENT = "fhmediacollector/1.0.2"
 
 DEFAULT_ENV_FILE_CONTENT = """# DEFAULT fhcollector env file
 E621_USERNAME=
@@ -91,7 +92,10 @@ class E621:
             return False
         else:
             with open(dest_img_path, "wb") as handle:
-                response = requests.get(post["file"]["url"], stream=True)
+                response = requests.get(post["file"]["url"],
+                                        stream=True,
+                                        headers=self.headers,
+                                        auth=HTTPBasicAuth(self.username, self.api_key))
                 if not response.ok:
                     print(response)
                 for block in response.iter_content(1024):
@@ -113,7 +117,9 @@ class E621:
                        "+".join(tags.split()) + \
                        "{}"
         posts = []
-        r = requests.get(api_call_url.format(""), headers=self.headers)
+        r = requests.get(api_call_url.format(""),
+                         headers=self.headers,
+                         auth=HTTPBasicAuth(self.username, self.api_key))
         posts_tmp = r.json()["posts"]
         posts.extend(posts_tmp)
         page = 2
@@ -274,7 +280,7 @@ def cli():
     parser.set_defaults(exclude_safe=False,
                         exclude_questionable=False,
                         exclude_explicit=False) # include all by default
-    parser.add_argument('--version', action='version', version='%(prog)s 1.0.1')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0.2')
     args = parser.parse_args()
 
     ratings = ["s", "q", "e"]
@@ -387,19 +393,29 @@ def cli():
         print("Performing search \"{}\":".format(search))
         metadata_file_contents += " - {}\n".format(search)
         posts = e621.get_posts(search)
+        if len(posts) == 0:
+            print("No posts matched the search")
+            continue
         metadata_file_contents += "   - {} posts\n".format(len(posts))
         for post in posts:
-            dlresult = e621.download_post(post, dst_dir)
-            if dlresult:
-                downloaded_count += 1
-            sleep(0.5)
+            try:
+                dlresult = e621.download_post(post, dst_dir)
+                if dlresult:
+                    downloaded_count += 1
+                sleep(0.5)
+            except Exception as e:
+                print("ERROR: {}... caused by:".format(e))
+                print(post)
     
     metadata_file_contents += "Total images downloaded: {}".format(downloaded_count)
     metadata_file_contents += "\n"
 
-    with open(Path(dst_dir + "/" + e621.runid + "/" + 
-              "{}_meta.txt".format(e621.runid)), "w") as f:
-        f.write(metadata_file_contents)
+    try:
+        with open(Path(dst_dir + "/" + e621.runid + "/" + 
+                "{}_meta.txt".format(e621.runid)), "w") as f:
+            f.write(metadata_file_contents)
+    except FileNotFoundError as e:
+        sys.exit(1)
 
     print("\n")
     print("-"*50)
@@ -411,4 +427,3 @@ def cli():
 
 if __name__ == "__main__":
     cli()
-
