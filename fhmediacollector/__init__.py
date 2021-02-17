@@ -27,12 +27,12 @@ CLI_INTRO_TEXT = "\n".join([
     CLI_ART,
     "\tAuthor: \tOddPawsX",
     "\tDiscord: \tOddPawsX#6969",
-    "\tVersion: \tv1.0.2",
+    "\tVersion: \tv1.1.1",
     "\n",
     "=" * 50
 ])
 
-USER_AGENT = "fhmediacollector/1.0.2"
+USER_AGENT = "fhmediacollector/1.1.1"
 
 DEFAULT_ENV_FILE_CONTENT = """# DEFAULT fhcollector env file
 E621_USERNAME=
@@ -92,10 +92,15 @@ class E621:
             return False
         else:
             with open(dest_img_path, "wb") as handle:
-                response = requests.get(post["file"]["url"],
-                                        stream=True,
-                                        headers=self.headers,
-                                        auth=HTTPBasicAuth(self.username, self.api_key))
+                if self.username is not None and self.api_key is not None:
+                    response = requests.get(post["file"]["url"],
+                                            stream=True,
+                                            headers=self.headers,
+                                            auth=HTTPBasicAuth(self.username, self.api_key))
+                else:
+                    response = requests.get(post["file"]["url"],
+                                            stream=True,
+                                            headers=self.headers)
                 if not response.ok:
                     print(response)
                 for block in response.iter_content(1024):
@@ -117,17 +122,28 @@ class E621:
                        "+".join(tags.split()) + \
                        "{}"
         posts = []
-        r = requests.get(api_call_url.format(""),
-                         headers=self.headers,
-                         auth=HTTPBasicAuth(self.username, self.api_key))
+        if self.username is not None and self.api_key is not None:
+            r = requests.get(api_call_url.format(""),
+                            headers=self.headers,
+                            auth=HTTPBasicAuth(self.username, self.api_key))
+        else:
+            r = requests.get(api_call_url.format(""),
+                            headers=self.headers)
         posts_tmp = r.json()["posts"]
         posts.extend(posts_tmp)
         page = 2
         while len(posts_tmp) >= 50:
             sleep(0.5)
-            r = requests.get(api_call_url.format(
+            if self.username is not None and self.api_key is not None:
+                r = requests.get(api_call_url.format(
                                 "&page={}".format(page)),
-                             headers=self.headers)
+                                 headers=self.headers,
+                                 auth=HTTPBasicAuth(self.username,
+                                                    self.api_key))
+            else:
+                r = requests.get(api_call_url.format(
+                                "&page={}".format(page)),
+                                 headers=self.headers)
             posts_tmp = r.json()["posts"]
             if len(posts_tmp) == 0:
                 break
@@ -233,7 +249,6 @@ def setup_env_file():
 
 # CLI function
 def cli():
-    setup_env_file()
     print(CLI_INTRO_TEXT)
 
     parser = argparse.ArgumentParser(
@@ -242,6 +257,7 @@ def cli():
         formatter_class=RawTextHelpFormatter
     )
     parser.add_argument('--search',
+                        '-s',
                         required=False,
                         type=str,
                         help="The e621 search string to use")
@@ -277,11 +293,20 @@ def cli():
                         action='store_true',
                         help="If present, exclude posts with the "
                              "rating 'explicit'")
+    parser.add_argument('--no-api-key', '-l',
+                        dest='no_api_key',
+                        action='store_true',
+                        help="If present, make requests to e621 "
+                             "without API key")
     parser.set_defaults(exclude_safe=False,
                         exclude_questionable=False,
-                        exclude_explicit=False) # include all by default
-    parser.add_argument('--version', action='version', version='%(prog)s 1.0.2')
+                        exclude_explicit=False, # include all by default
+                        no_api_key=False) # use api with key by default
+    parser.add_argument('--version', action='version', version='%(prog)s 1.1.1')
     args = parser.parse_args()
+
+    if not args.no_api_key:
+        setup_env_file()
 
     ratings = ["s", "q", "e"]
     if args.exclude_safe:
@@ -319,32 +344,37 @@ def cli():
     print("Current Configuration:")
     print("-" * 50)
     print("Allowed ratings: {}".format(ratings))
-    print("CONF FILE: \t{}".format(args.config))
+    credentialed = None
+    if not args.no_api_key:
+        credentialed = True
+        print("CONF FILE: \t{}".format(args.config))
+        env_path = Path(args.config)
+        try:
+            if not env_path.is_file():
+                raise ConfigFileDoesNotExistException(env_path)
+            if args.avoid and not args.avoid.is_file():
+                raise FileDoesNotExistException(args.avoid)
+        except Exception as e:
+            print("ERROR: {}".format(e))
+            sys.exit(1)
+        load_dotenv(dotenv_path=env_path)
 
-    env_path = Path(args.config)
-    try:
-        if not env_path.is_file():
-            raise ConfigFileDoesNotExistException(env_path)
-        if args.avoid and not args.avoid.is_file():
-            raise FileDoesNotExistException(args.avoid)
-    except Exception as e:
-        print("ERROR: {}".format(e))
-        sys.exit(1)
-    load_dotenv(dotenv_path=env_path)
+        try:
+            for required_var in ["E621_USERNAME", "E621_API_KEY"]:
+                if os.environ[required_var] == "":
+                    raise ConfigFileMissingValueException(env_path, required_var)
+        except Exception as e:
+            print("ERROR: {}".format(e))
+            sys.exit(1)
 
-    try:
-        for required_var in ["E621_USERNAME", "E621_API_KEY"]:
-            if os.environ[required_var] == "":
-                raise ConfigFileMissingValueException(env_path, required_var)
-    except Exception as e:
-        print("ERROR: {}".format(e))
-        sys.exit(1)
-
-    # preview the creds
-    print("Username: \t{}".format(os.environ["E621_USERNAME"]))
-    print("API Key: \t{}".format(os.environ["E621_API_KEY"][:3] +
-         ("*"*(len(os.environ["E621_API_KEY"])-3))))
-    print("-" * 50)
+        # preview the creds
+        print("Username: \t{}".format(os.environ["E621_USERNAME"]))
+        print("API Key: \t{}".format(os.environ["E621_API_KEY"][:3] +
+            ("*"*(len(os.environ["E621_API_KEY"])-3))))
+        print("-" * 50)
+    else:
+        print("Not using API Key.")
+        credentialed = False
 
     try:
         if args.avoid:
@@ -362,10 +392,15 @@ def cli():
     print("-" * 50)
 
     # Create e621 object
-    e621 = E621(os.environ["E621_USERNAME"],
-                os.environ["E621_API_KEY"],
-                allowed_ratings=ratings,
-                avoid_list=avoid_list)
+    if credentialed:
+        e621 = E621(os.environ["E621_USERNAME"],
+                    os.environ["E621_API_KEY"],
+                    allowed_ratings=ratings,
+                    avoid_list=avoid_list)
+    else:
+        e621 = E621(None, None,
+                    allowed_ratings=ratings,
+                    avoid_list=avoid_list)
 
     print("Run ID: {}".format(e621.runid))
     print("-" * 50)
@@ -404,8 +439,11 @@ def cli():
                     downloaded_count += 1
                 sleep(0.5)
             except Exception as e:
-                print("ERROR: {}... caused by:".format(e))
-                print(post)
+                # print("ERROR: {}... caused by:".format(e))
+                # print(post)
+                print("Unable to download post {}. "
+                      "You may need to be logged in to view. "
+                      "Use API key to download.".format(post['id']))
     
     metadata_file_contents += "Total images downloaded: {}".format(downloaded_count)
     metadata_file_contents += "\n"
