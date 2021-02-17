@@ -27,12 +27,12 @@ CLI_INTRO_TEXT = "\n".join([
     CLI_ART,
     "\tAuthor: \tOddPawsX",
     "\tDiscord: \tOddPawsX#6969",
-    "\tVersion: \tv1.1.1",
+    "\tVersion: \tv1.1.2",
     "\n",
     "=" * 50
 ])
 
-USER_AGENT = "fhmediacollector/1.1.1"
+USER_AGENT = "fhmediacollector/1.1.2"
 
 DEFAULT_ENV_FILE_CONTENT = """# DEFAULT fhcollector env file
 E621_USERNAME=
@@ -302,7 +302,7 @@ def cli():
                         exclude_questionable=False,
                         exclude_explicit=False, # include all by default
                         no_api_key=False) # use api with key by default
-    parser.add_argument('--version', action='version', version='%(prog)s 1.1.1')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.1.2')
     args = parser.parse_args()
 
     if not args.no_api_key:

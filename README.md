@@ -29,18 +29,20 @@ $ fhcollector -h
 
         Author:         OddPawsX
         Discord:        OddPawsX#6969
-        Version:        v1.1.1
+	      Version: 	v1.1.2
 
 
 ==================================================
-usage: fhcollector [-h] [--search SEARCH] [--searchconf SEARCHCONF] [--config CONFIG] [--avoid AVOID] [--no-safe] [--no-questionable] [--no-explicit] [--version]
+usage: fhcollector [-h] [--search SEARCH] [--searchconf SEARCHCONF] [--config CONFIG] [--avoid AVOID] [--no-safe]
+                   [--no-questionable] [--no-explicit] [--no-api-key] [--version]
 
 Gathers posts from e621 matching the specified tags,
  then organizes for ease in video/slideshow creation.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --search SEARCH       The e621 search string to use
+  --search SEARCH, -s SEARCH
+                        The e621 search string to use
   --searchconf SEARCHCONF, -f SEARCHCONF
                         Path to a file containing multiple e621 search strings
   --config CONFIG, -c CONFIG
@@ -50,5 +52,6 @@ optional arguments:
   --no-safe             If present, exclude posts with the rating 'safe'
   --no-questionable     If present, exclude posts with the rating 'questionable'
   --no-explicit         If present, exclude posts with the rating 'explicit'
+  --no-api-key, -l      If present, make requests to e621 without API key
   --version             show program's version number and exit
 ```
