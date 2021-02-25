@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='fhmediacollector',
-      version='1.1.2',
+      version='1.1.4',
       description='e621 media collection and organization for video creation',
       long_description=readme(),
       long_description_content_type="text/markdown",
@@ -19,5 +19,8 @@ setup(name='fhmediacollector',
           'python-dotenv'
       ],
       include_package_data=True,
-      scripts=['bin/fhcollector']
+      # scripts=['bin/fhcollector']
+      entry_points={
+		'console_scripts': ['fhcollector=fhmediacollector:cli']
+	  }
       )
