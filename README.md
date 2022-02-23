@@ -91,6 +91,6 @@ Filename:
 [2185811] = Post ID
 [D] = whether or not there is cum (C=there is, D=dry/there isn't)
 [A] = whether or not it is animated (S=static, A=animated)
-ff1b6bb0f46f27d48b7d3ed3a441a478.png - the orignal filename from e621 (which I believe is the file's MD5 hash?)
+ff1b6bb0f46f27d48b7d3ed3a441a478.png - the original filename from e621 (The file's MD5 hash)
 ```
 
