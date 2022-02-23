@@ -55,3 +55,42 @@ optional arguments:
   --no-api-key, -l      If present, make requests to e621 without API key
   --version             show program's version number and exit
 ```
+
+## Example Usage
+```
+─ ~/Desktop
+╰─❯ fhcollector --avoid avoid_list.txt --no-safe --search "male solo dildo_in_ass order:score score:>=290"
+Current Configuration:
+--------------------------------------------------
+Allowed ratings: ['q', 'e']
+CONF FILE:     /home/opx/.fhcollector.env
+Username:     *********
+API Key:     ********************************
+--------------------------------------------------
+Tags to avoid: ['human', 'cub']
+--------------------------------------------------
+Run ID: d4606b3d-c334-473e-b16a-a500b81d97e7
+--------------------------------------------------
+Performing search "male solo dildo_in_ass order:score score:>=290":
+Downloaded '[872][eto_ya][2185811][D][A] ff1b6bb0f46f27d48b7d3ed3a441a478.gif'.
+... (truncated for length) ...
+Downloaded '[291][doxy+rajii][263968][C][S] c96521e2b9d67922b2fd99ae632e138d.jpg'.
+
+
+--------------------------------------------------
+DONE. Downloaded 13 pieces of media. Check the fhcollected folder.
+```
+
+## Naming Conventions of saved media
+```
+Filename: 
+[872][eto_ya][2185811][D][A] ff1b6bb0f46f27d48b7d3ed3a441a478.gif
+---
+[872] = Post score
+[eto_ya] - artist(s)
+[2185811] = Post ID
+[D] = whether or not there is cum (C=there is, D=dry/there isn't)
+[A] = whether or not it is animated (S=static, A=animated)
+ff1b6bb0f46f27d48b7d3ed3a441a478.png - the orignal filename from e621 (which I believe is the file's MD5 hash?)
+```
+
